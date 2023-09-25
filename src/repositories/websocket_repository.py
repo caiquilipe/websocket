@@ -33,8 +33,7 @@ class WebsocketRepository:
     def __decode_command(self, message: bytes):
         try:
             return message[0], json.dumps(
-                json.loads(json.loads(message[1:].decode()))
-                | dict(id=self.websocket_id)
+                json.loads(message[1:].decode()) | {"websocket_id": self.websocket_id}
             )
         except Exception as e:
             logger.error(f"Error decoding message: {e}")
