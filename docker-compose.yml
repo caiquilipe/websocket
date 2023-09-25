@@ -1,0 +1,19 @@
+version: '3'
+services:
+  websocket:
+    container_name: websocket
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+  redis:
+    container_name: redis
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+  redis-insight:
+    container_name: redis-insight
+    image: "redislabs/redisinsight:latest"
+    ports:
+      - "8001:8001"    
