@@ -40,9 +40,6 @@ class WebsocketRepository:
         try:
             async for message in self.__websocket.iter_bytes():
                 command, payload = self.__decode_command(message)
-                logger.warning(
-                    f"Received command from {self.__websocket_id} - {command} - {payload}"
-                )
                 await self.__broadcast.publish(
                     channel=self.__websocket_id, message=payload
                 )
@@ -61,7 +58,6 @@ class WebsocketRepository:
         ) as subscriber:
             logger.warning(f"{self.__websocket_id} SUBSCRIBED")
             async for event in subscriber:
-                logger.warning(f"Sending event to 1: {self.__websocket_id}")
                 try:
                     await self.__websocket.send_bytes(str(event.message).encode())
                 except Exception as e:
