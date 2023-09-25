@@ -33,6 +33,9 @@ class WebsocketRepository:
     def __decode_command(self, message: bytes):
         try:
             logger.warning(f"Message received: {message[1:].decode()}")
+            logger.warning(
+                f"Message decoded: {message[1:].decode() | {'websocket_id': self.websocket_id}}"
+            )
             logger.warning(f"Message decoded: {json.loads(message[1:].decode())}")
             logger.warning(
                 f"Message decoded: {json.dumps(json.loads(message[1:].decode()) | {'websocket_id': self.websocket_id})}"
