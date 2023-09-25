@@ -11,7 +11,12 @@ services:
     container_name: redis
     image: "redis:alpine"
     ports:
-      - "6379:6379"
+      - "6380:6379"
+  redis-session:
+    container_name: redis-session
+    image: "redis:alpine"
+    ports:
+      - "6381:6379"
   redis-insight:
     container_name: redis-insight
     image: "redislabs/redisinsight:latest"

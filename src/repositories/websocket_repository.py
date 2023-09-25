@@ -14,7 +14,7 @@ class WebsocketRepository:
     def __init__(self, websocket: "WebSocket", broadcast: "Broadcast"):
         self.__broadcast = broadcast
         self.__websocket = websocket
-        self.__websocket_id = str(id(websocket))
+        self.websocket_id = str(id(websocket))
 
     async def connect(self):
         await self.__websocket.accept()
@@ -41,22 +41,20 @@ class WebsocketRepository:
             async for message in self.__websocket.iter_bytes():
                 command, payload = self.__decode_command(message)
                 await self.__broadcast.publish(
-                    channel=self.__websocket_id, message=payload
+                    channel=self.websocket_id, message=payload
                 )
         except KeyError:
             logger.warning(
-                f"{self.__websocket_id} DISCONNECTED - Command received invalid"
+                f"{self.websocket_id} DISCONNECTED - Command received invalid"
             )
         finally:
-            logger.warning(f"{self.__websocket_id} DISCONNECTED - Closing connection")
+            logger.warning(f"{self.websocket_id} DISCONNECTED - Closing connection")
             task_group.cancel_scope.cancel()
 
     async def __receive_event(self):
-        logger.warning(f"{self.__websocket_id} CONNECTED")
-        async with self.__broadcast.subscribe(
-            channel=self.__websocket_id
-        ) as subscriber:
-            logger.warning(f"{self.__websocket_id} SUBSCRIBED")
+        logger.warning(f"{self.websocket_id} CONNECTED")
+        async with self.__broadcast.subscribe(channel=self.websocket_id) as subscriber:
+            logger.warning(f"{self.websocket_id} SUBSCRIBED")
             async for event in subscriber:
                 try:
                     await self.__websocket.send_bytes(str(event.message).encode())
