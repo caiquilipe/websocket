@@ -2,10 +2,14 @@ from fastapi import APIRouter, WebSocket
 from repositories.websocket_repository import WebsocketRepository
 from typing import TYPE_CHECKING
 import secrets
+import logging
+
 
 if TYPE_CHECKING:
     from repositories.player_repository import PlayerInRedisRepository
     from broadcaster import Broadcast
+
+logger = logging.getLogger(__name__)
 
 
 class WebsocketRoute(APIRouter):
@@ -26,7 +30,13 @@ class WebsocketRoute(APIRouter):
             self.__player_repository.add_session(
                 websocket_repository.websocket_id, secrets.token_hex(16)
             )
+            logger.warning(
+                f"Total sessions: {self.__player_repository.count_sessions()}"
+            )
             await websocket_repository.connect()
             await websocket_repository.disconnect()
         finally:
             self.__player_repository.remove_session(websocket_repository.websocket_id)
+            logger.warning(
+                f"Total sessions: {self.__player_repository.count_sessions()}"
+            )

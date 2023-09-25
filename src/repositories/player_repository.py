@@ -18,3 +18,6 @@ class PlayerInRedisRepository:
 
     def remove_session(self, session_id: str):
         self.__pool.delete(session_id)
+
+    def count_sessions(self) -> int:
+        return len(self.__pool.keys())
