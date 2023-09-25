@@ -34,7 +34,7 @@ class WebsocketRepository:
         try:
             logger.warning(f"Message received: {message[1:].decode()}")
             logger.warning(
-                f"Message decoded: {message[1:].decode() | {'websocket_id': self.websocket_id}}"
+                f"Message decoded: {json.loads(message[1:].decode()) | {'websocket_id': self.websocket_id}}"
             )
             logger.warning(f"Message decoded: {json.loads(message[1:].decode())}")
             logger.warning(
