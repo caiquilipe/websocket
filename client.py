@@ -12,7 +12,7 @@ async def receive(websocket):
 
 
 async def hello():
-    uri = "ws://localhost:8000/ws"
+    uri = "ws://4.201.49.145/ws"
     async with websockets.connect(uri) as websocket:
         print("Conectado ao servidor.")
         number = 1
@@ -30,5 +30,5 @@ def main():
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    for _ in range(1):
+    for _ in range(4):
         multiprocessing.Process(target=main).start()
