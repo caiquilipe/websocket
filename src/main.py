@@ -32,4 +32,4 @@ class Application(FastAPI):
         self.include_router(WebsocketRoute(self.__broadcast, self.__player_repository))
 
 
-app = Application(broadcast)
+app = Application(broadcast, player_repository)
