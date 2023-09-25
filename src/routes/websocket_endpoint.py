@@ -27,7 +27,6 @@ class WebsocketRoute(APIRouter):
     async def websocket_endpoint(self, websocket: "WebSocket"):
         websocket_repository = WebsocketRepository(websocket, self.__broadcast)
         try:
-            logger.warning(f"Enter session: {websocket_repository.websocket_id}")
             self.__player_repository.add_session(
                 websocket_repository.websocket_id, secrets.token_hex(16)
             )

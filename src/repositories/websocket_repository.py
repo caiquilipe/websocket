@@ -33,7 +33,7 @@ class WebsocketRepository:
         try:
             return message[0], message[1:].decode()
         except Exception as e:
-            logger.warning(f"Error decoding message: {e}")
+            logger.error(f"Error decoding message: {e}")
             raise KeyError
 
     async def __receive_command(self, task_group: "TaskGroup"):
@@ -44,22 +44,16 @@ class WebsocketRepository:
                     channel=self.websocket_id, message=payload
                 )
         except KeyError:
-            logger.warning(
-                f"{self.websocket_id} DISCONNECTED - Command received invalid"
-            )
+            logger.error(f"{self.websocket_id} DISCONNECTED - Command received invalid")
         finally:
             logger.warning(f"{self.websocket_id} DISCONNECTED - Closing connection")
             task_group.cancel_scope.cancel()
 
     async def __receive_event(self):
-        logger.warning(f"{self.websocket_id} CONNECTED")
         async with self.__broadcast.subscribe(channel=self.websocket_id) as subscriber:
-            logger.warning(f"{self.websocket_id} SUBSCRIBED")
             async for event in subscriber:
                 try:
                     await self.__websocket.send_bytes(str(event.message).encode())
                 except Exception as e:
-                    logger.warning(f"Error sending message: {e}")
+                    logger.error(f"Error sending message: {e}")
                     break
-            logger.warning("No more events")
-        logger.warning("No more subscribers")
