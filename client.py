@@ -1,6 +1,7 @@
 import websockets
 import asyncio
 import multiprocessing
+import time
 
 
 async def receive(websocket):
@@ -18,7 +19,7 @@ async def hello():
         number = 1
         asyncio.get_event_loop().create_task(receive(websocket))
         while True:
-            await websocket.send(number.to_bytes(1, "big") + b"{'teste': 'teste'}")
+            await websocket.send(number.to_bytes(1, "big") + b'{"teste": "teste"}')
             await asyncio.sleep(2)
 
 
@@ -32,3 +33,4 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     for _ in range(4):
         multiprocessing.Process(target=main).start()
+        time.sleep(1)
