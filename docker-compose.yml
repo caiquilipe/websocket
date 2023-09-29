@@ -5,27 +5,66 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: always
     ports:
       - "80:80"
+    depends_on:
+      - rabbitmq
+      - redis
+      - redis-session
+  logic:
+    container_name: logic
+    restart: always
+    build:
+      context: ./game_logic
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
   redis:
     container_name: redis
     image: "redis:alpine"
+    restart: always
     ports:
       - "6380:6379"
   redis-session:
     container_name: redis-session
+    restart: always
     image: "redis:alpine"
     ports:
       - "6381:6379"
   redis-insight:
     container_name: redis-insight
     image: "redislabs/redisinsight:latest"
+    restart: always
     ports:
-      - "8001:8001"    
+      - "8001:8001"
   rabbitmq:
-    container_name: rabbitmq
-    image: "rabbitmq:3-management"
+    image: rabbitmq:3.8-management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=b5ecbf7c223a33e9c3032f74d08fccbb8218024ff9e2ea0300418c649b808982
     ports:
       - "5672:5672"
       - "15672:15672"
-      
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia
+  rabbitmq-secondary:
+    image: rabbitmq:3.8-
+    hostname: rabbitmq-secondary
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=b5ecbf7c223a33e9c3032f74d08fccbb8218024ff9e2ea0300418c649b808982
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia
+  rabbitmq-tertiary:
+    image: rabbitmq:3.8-
+    hostname: rabbitmq-tertiary
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=b5ecbf7c223a33e9c3032f74d08fccbb8218024ff9e2ea0300418c649b808982
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia
+volumes:
+  rabbitmq-data:
+networks:
+  default:
+    driver: bridge

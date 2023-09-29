@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 import anyio
 import logging
 import json
+import time
 
 if TYPE_CHECKING:
     from fastapi import WebSocket
@@ -40,7 +41,7 @@ class WebsocketRepository:
     def __decode_command(self, message: bytes):
         try:
             return message[0], json.dumps(
-                json.loads(message[1:].decode()) | {"websocket_id": self.websocket_id}
+                json.loads(message[1:].decode()) | {"websocket_id": self.websocket_id} | {"timestamp": time.time()}
             )
         except Exception as e:
             logger.error(f"Error decoding message: {e}")
@@ -50,7 +51,7 @@ class WebsocketRepository:
         try:
             async for message in self.__websocket.iter_bytes():
                 command, payload = self.__decode_command(message)
-                self.__bus_repository.publish(payload, "bus")
+                await self.__bus_repository.publish(payload.encode("utf-8"), "bus")
         except KeyError:
             logger.error(f"{self.websocket_id} DISCONNECTED - Command received invalid")
         finally:
@@ -59,9 +60,12 @@ class WebsocketRepository:
 
     async def __receive_event(self):
         async with self.__broadcast.subscribe(channel=self.websocket_id) as subscriber:
+            logger.warning(f"Subscribed to channel: {self.websocket_id}")
             async for event in subscriber:
                 try:
-                    await self.__websocket.send_bytes(str(event.message).encode())
+                    payload = json.loads(event.message)
+                    payload["timestamp"] = time.time()
+                    await self.__websocket.send_bytes(json.dumps(payload).encode())
                 except Exception as e:
                     logger.error(f"Error sending message: {e}")
                     break
