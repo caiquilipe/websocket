@@ -16,15 +16,19 @@ async def callback(body):
     body = json.dumps(payload).encode("utf-8")
     await bus_repository.publish(body, "websocket")
 
+
 async def consume():
     asyncio.create_task(many_consumer())
-        
+
+
 async def connect():
     await bus_repository.connect()
-    
+
+
 async def disconnect():
     await bus_repository.disconnect()
-    
+
+
 async def many_consumer():
     consumer_tasks = [bus_repository.consume(callback, "bus") for i in range(50)]
     await asyncio.gather(*consumer_tasks)

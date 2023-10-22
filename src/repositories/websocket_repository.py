@@ -1,8 +1,8 @@
+from repositories.auth_repository import authenticate
 from typing import TYPE_CHECKING
 import anyio
 import logging
 import json
-import time
 
 if TYPE_CHECKING:
     from fastapi import WebSocket
@@ -27,7 +27,8 @@ class WebsocketRepository:
 
     async def connect(self):
         await self.__websocket.accept()
-        # TODO - Autenticar com a banca
+        query_params = self.__websocket.query_params
+        await authenticate(websocket_id=self.websocket_id, **query_params)
         async with anyio.create_task_group() as task_group:
             task_group.start_soon(self.__receive_command, task_group)
             await self.__receive_event()
@@ -40,18 +41,32 @@ class WebsocketRepository:
 
     def __decode_command(self, message: bytes):
         try:
-            return message[0], json.dumps(
-                json.loads(message[1:].decode()) | {"websocket_id": self.websocket_id} | {"timestamp": time.time()}
-            )
+            payload = {
+                "websocket_id": self.websocket_id,
+                "data": json.dumps(json.loads(message[1:]))
+            }
+            return self.__choices(message[0]), json.dumps(payload)
         except Exception as e:
             logger.error(f"Error decoding message: {e}")
             raise KeyError
+    
+    def __choices(self, command: int):
+        choices = {
+            2: "join_lobby",
+            3: "start",
+            4: "play",
+            8: "play_auto",
+            5: "cashout",
+            6: "user_bets",
+            7: "consult_auto"
+        }
+        return choices[command]
 
     async def __receive_command(self, task_group: "TaskGroup"):
         try:
             async for message in self.__websocket.iter_bytes():
                 command, payload = self.__decode_command(message)
-                await self.__bus_repository.publish(payload.encode("utf-8"), "bus")
+                await self.__bus_repository.publish(payload.encode("utf-8"), command)
         except KeyError:
             logger.error(f"{self.websocket_id} DISCONNECTED - Command received invalid")
         finally:
@@ -64,8 +79,11 @@ class WebsocketRepository:
             async for event in subscriber:
                 try:
                     payload = json.loads(event.message)
-                    payload["timestamp"] = time.time()
-                    await self.__websocket.send_bytes(json.dumps(payload).encode())
+                    response = int_to_bytes(payload["event_id"]) + json.dumps(payload["data"]).encode()
+                    await self.__websocket.send_bytes(response)
                 except Exception as e:
                     logger.error(f"Error sending message: {e}")
                     break
+
+def int_to_bytes(number: int):
+    return number.to_bytes(1, byteorder="big")

@@ -12,12 +12,13 @@ class BusRepository:
 
     async def connect(self):
         self.__connection = await aio_pika.connect_robust(self.__url_connection)
-        self.__channel = await self.__connection.channel()
+        
 
     async def publish(self, message, queue):
-        await self.__channel.default_exchange.publish(
-            aio_pika.Message(body=message), routing_key=queue
-        )
+        async with self.__connection.channel() as ch:
+            await ch.default_exchange.publish(
+                aio_pika.Message(body=message), routing_key=queue
+            )
 
     async def consume(self, callback, queue):
         connection = await aio_pika.connect_robust(self.__url_connection)
