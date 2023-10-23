@@ -26,9 +26,9 @@ class WebsocketRepository:
         self.websocket_id = str(id(websocket))
 
     async def connect(self):
-        await self.__websocket.accept()
         query_params = self.__websocket.query_params
         await authenticate(websocket_id=self.websocket_id, **query_params)
+        await self.__websocket.accept()
         async with anyio.create_task_group() as task_group:
             task_group.start_soon(self.__receive_command, task_group)
             await self.__receive_event()
