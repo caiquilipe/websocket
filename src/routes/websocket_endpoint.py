@@ -36,3 +36,4 @@ class WebsocketRoute(APIRouter):
             await websocket_repository.disconnect()
         except Exception as e:
             logger.error(f"Error: {e}")
+            raise e
