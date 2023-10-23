@@ -79,7 +79,7 @@ class WebsocketRepository:
             async for event in subscriber:
                 try:
                     payload = json.loads(event.message)
-                    response = int_to_bytes(payload["event_id"]) + json.dumps(payload["data"]).encode()
+                    response = int_to_bytes(payload["event_id"]) + payload["data"].encode("utf-8")
                     await self.__websocket.send_bytes(response)
                 except Exception as e:
                     logger.error(f"Error sending message: {e}")
