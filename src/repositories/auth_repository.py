@@ -17,6 +17,7 @@ async def authenticate(*args, **kwargs):
             json=body.model_dump(),
         ) as response:
             if not response.status == 200:
+                logging.warning(f"Error on authenticate service: {response.status}")
                 raise HTTPException(
                     detail="Error on authenticate service",
                     status_code=response.status,
