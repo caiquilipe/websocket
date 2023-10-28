@@ -15,8 +15,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-broadcast = Broadcast(os.getenv("REDIS_URL"))
-bus_repository = BusRepository(os.getenv("RABBITMQ_URL"))
+broadcast = Broadcast(os.getenv("WS_REDIS_URL"))
+bus_repository = BusRepository(os.getenv("AIO_PIKA_HOST"))
 
 
 async def callback(body: bytes):

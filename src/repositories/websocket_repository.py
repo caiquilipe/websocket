@@ -1,8 +1,10 @@
 from repositories.auth_repository import authenticate
+
 from typing import TYPE_CHECKING
 import anyio
 import logging
 import json
+import asyncio
 
 if TYPE_CHECKING:
     from fastapi import WebSocket
@@ -24,11 +26,12 @@ class WebsocketRepository:
         self.__websocket = websocket
         self.__bus_repository = bus_repository
         self.websocket_id = str(id(websocket))
+        self.ON_DISCONNECT = 1
 
     async def connect(self):
-        await self.__websocket.accept()
         query_params = self.__websocket.query_params
         await authenticate(websocket_id=self.websocket_id, **query_params)
+        await self.__websocket.accept()
         async with anyio.create_task_group() as task_group:
             task_group.start_soon(self.__receive_command, task_group)
             await self.__receive_event()
@@ -82,6 +85,9 @@ class WebsocketRepository:
                     payload = json.loads(event.message)
                     response = int_to_bytes(payload["event_id"]) + payload["data"].encode("utf-8")
                     await self.__websocket.send_bytes(response)
+                    if payload["event_id"] == self.ON_DISCONNECT:
+                        await asyncio.sleep(1)
+                        break
                 except Exception as e:
                     logger.error(f"Error sending message: {e}")
                     break

@@ -32,8 +32,9 @@ class WebsocketRoute(APIRouter):
             websocket, self.__broadcast, self.__bus_repository
         )
         try:
-            logging.warning("websocket_endpoint")
             await websocket_repository.connect()
-            await websocket_repository.disconnect()
         except Exception as e:
             logger.error(f"Error: {e}")
+        finally:
+            await websocket_repository.disconnect()
+            
