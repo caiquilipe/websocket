@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from routes.websocket_endpoint import WebsocketRoute
 from repositories.bus_repository import BusRepository
 from broadcaster import Broadcast
-from datadog import initialize
+from datadog import initialize, statsd
 import logging
 import json
 import asyncio
@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 broadcast = Broadcast(os.getenv("WS_REDIS_URL"))
 bus_repository = BusRepository(os.getenv("AIO_PIKA_HOST"))
 
-
+def reset_metrics():
+    statsd.gauge("websocket.connected", 0, tags=["environment:dev"])
+    
 async def callback(body: bytes):
     payload = json.loads(body)
     await broadcast.publish(payload["websocket_id"], json.dumps(payload))
@@ -44,6 +46,7 @@ class Application(FastAPI):
         self.__bus_repository = bus_repository
         super().__init__(
             on_startup=[
+                reset_metrics,
                 self.__broadcast.connect,
                 self.__bus_repository.connect,
                 consumer,
