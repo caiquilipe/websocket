@@ -1,6 +1,6 @@
 from fastapi import APIRouter, WebSocket
 from repositories.websocket_repository import WebsocketRepository
-
+from datadog import statsd
 from typing import TYPE_CHECKING
 import logging
 
@@ -32,9 +32,11 @@ class WebsocketRoute(APIRouter):
             websocket, self.__broadcast, self.__bus_repository
         )
         try:
+            statsd.increment("websocket.connected", tags=["environment:dev"])
             await websocket_repository.connect()
         except Exception as e:
             logger.error(f"Error: {e}")
         finally:
             await websocket_repository.disconnect()
+            statsd.decrement("websocket.connected", tags=["environment:dev"])
             

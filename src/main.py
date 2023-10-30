@@ -2,11 +2,18 @@ from fastapi import FastAPI
 from routes.websocket_endpoint import WebsocketRoute
 from repositories.bus_repository import BusRepository
 from broadcaster import Broadcast
+from datadog import initialize
 import logging
 import json
 import asyncio
 import os
 
+options = {
+    "statsd_host": os.getenv("DATADOG_HOST"),
+    "statsd_port": os.getenv("DATADOG_PORT"),
+}
+
+initialize(**options)
 
 logging.basicConfig(
     level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s"
